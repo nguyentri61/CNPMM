@@ -1,5 +1,4 @@
 import { Sequelize } from 'sequelize';
-// const { Sequelize } = require('sequelize');
 
 // Option 3: Passing parameters separately (other dialects)
 const sequelize = new Sequelize('node_fullstack', 'root', "root", {
@@ -8,7 +7,7 @@ const sequelize = new Sequelize('node_fullstack', 'root', "root", {
     logging: false,
 });
 
-let connectDB = async () => {
+const connectDB = async (): Promise<void> => {
     try {
         await sequelize.authenticate();
         console.log('Connection has been established successfully.');
@@ -17,4 +16,4 @@ let connectDB = async () => {
     }
 };
 
-module.exports = connectDB;
+export default connectDB;

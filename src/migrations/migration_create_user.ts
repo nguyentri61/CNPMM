@@ -1,6 +1,7 @@
-'use strict';
+import { QueryInterface, DataTypes } from 'sequelize';
+
 module.exports = {
-    up: async (queryInterface, Sequelize) => {
+    up: async (queryInterface: QueryInterface, Sequelize: typeof DataTypes) => {
         await queryInterface.createTable('users', {
             id: {
                 allowNull: false,
@@ -37,15 +38,7 @@ module.exports = {
                 type: Sequelize.BOOLEAN,
                 allowNull: true
             },
-            image: {
-                type: Sequelize.STRING,
-                allowNull: true
-            },
             roleId: {
-                type: Sequelize.STRING,
-                allowNull: true
-            },
-            positionId: {
                 type: Sequelize.STRING,
                 allowNull: true
             },
@@ -59,7 +52,7 @@ module.exports = {
             }
         });
     },
-    down: async (queryInterface, Sequelize) => {
+    down: async (queryInterface: QueryInterface, Sequelize: typeof DataTypes) => {
         await queryInterface.dropTable('users');
     }
 };

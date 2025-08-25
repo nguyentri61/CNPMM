@@ -1,12 +1,14 @@
-import express from "express";
-import configViewEngine from "./config/viewEngine.js";
+import express, { Application } from "express";
+import configViewEngine from "./config/viewEngine";
 import bodyParser from "body-parser";
-import connectDB from "./config/configdb.js";
-import initWebRoutes from "./route/web.js";
-require('dotenv').config();
+import connectDB from "./config/configdb";
+import initWebRoutes from "./route/web";
+import dotenv from 'dotenv';
 
-const app = express();
-const port = 3000 || process.env.PORT;
+dotenv.config();
+
+const app: Application = express();
+const port: number = parseInt(process.env.PORT || '3000');
 
 // Body parser middleware
 app.use(bodyParser.json());

@@ -1,9 +1,9 @@
-import express from 'express';
-import homeController from '../controllers/homeController.js';
+import express, { Application, Router } from 'express';
+import homeController from '../controllers/homeController';
 
-const router = express.Router();
+const router: Router = express.Router();
 
-const initWebRoutes = (app) => {
+const initWebRoutes = (app: Application): void => {
     //Default
     router.get('/', (req, res) => {
         return res.send('Nguyen Phan Minh Tri');
