@@ -1,38 +1,37 @@
-require("dotenv").config();
-//import các nguồn cần dùng
-const express = require("express"); //commonjs
-const configViewEngine = require("./config/viewEngine");
-const apiRoutes = require("./routes/api");
-const connectDB = require("./config/database");
-const { getHomepage } = require("./controllers/homeController");
-const cors = require("cors");
+require('dotenv').config();
+const cors = require('cors');
 
-const app = express(); //cấu hình app là express
-//cài đặt port, nếu tìm thấy port trong env, không thì trả về 8888
-const port = process.env.PORT || 8888;
-app.use(cors()); //config cors
+const express = require('express');
+const configViewEngine = require('./config/viewEngine');
+const connectDB = require('./config/database');
+const apiRoutes = require('./routes/api');
+const { getHomepage } = require('./controllers/homeController');
 
-app.use(express.json()); //config req.body cho json
-app.use(express.urlencoded({ extended: true })); // for form data
-configViewEngine(app); //config template engine
 
-//config route cho view ejs
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Configure view engine
+configViewEngine(app);
+
 const webAPI = express.Router();
-webAPI.get("/", getHomepage);
-app.use("/", webAPI);
-
-//khai báo route cho API
-app.use("/api/v1/", apiRoutes);
-
+webAPI.get('/', getHomepage);
+app.use('/', webAPI);
+app.use('/api', webAPI);
+app.use('/v1/api', apiRoutes);
 (async () => {
     try {
-        //kết nối database using mongoose
         await connectDB();
-        //lắng nghe port trong env
-        app.listen(port, () => {
-            console.log(`Backend Nodejs App listening on port ${port}`);
+
+        app.listen(PORT, () => {
+            console.log(`Server is running on http://localhost:${PORT}`);
         });
-    } catch (error) {
-        console.log(">>> Error connect to DB: ", error);
+    }
+    catch (error) {
+        console.error("Failed to start server:", error);
     }
 })();

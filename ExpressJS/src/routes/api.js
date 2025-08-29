@@ -1,29 +1,23 @@
-const express = require("express");
-const {
-    createUser,
-    handleLogin,
-    getUser,
-    getAccount,
-} = require("../controllers/userController");
-const auth = require("../middlewares/auth");
-const { delay } = require("../middlewares/delay");
+const express = require('express');
+const { createUser, handleLogin, getUser,
+    getAccount }
+    = require('../controllers/userController');
+const auth = require('../middleware/auth');
+const delay = require('../middleware/delay');
 
-const routerAPI = express.Router();
+const router = express.Router();
 
-// middleware auth cho tất cả API
-routerAPI.all("*", auth);
+router.use(auth);
 
-// test API
-routerAPI.get("/", (req, res) => {
-    return res.status(200).json("Hello world api");
+router.get("/", (req, res) => {
+    res.status(200).json({
+        message: "Hello wordddddd!"
+    });
 });
 
-// API auth
-routerAPI.post("/register", createUser);
-routerAPI.post("/login", handleLogin);
+router.post("/register", createUser);
+router.post("/login", handleLogin);
+router.get("/get-user", getUser);
+router.get("/account", delay, getAccount);
 
-// API user
-routerAPI.get("/user", getUser);
-routerAPI.get("/account", delay, getAccount);
-
-module.exports = routerAPI; //export default
+module.exports = router;    

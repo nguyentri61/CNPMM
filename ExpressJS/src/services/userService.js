@@ -1,95 +1,105 @@
 require("dotenv").config();
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
+const { name } = require("ejs");
+const e = require("express");
 const jwt = require("jsonwebtoken");
 const saltRounds = 10;
 
-// Tạo user mới
 const createUserService = async (name, email, password) => {
     try {
-        // check user exist
-        const user = await User.findOne({ email });
-        if (user) {
-            console.log(`>>> user exist, chọn 1 email khác: ${email}`);
-            return null;
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return { success: false, message: "User already exists" };
         }
 
-        // hash user password
-        const hashPassword = await bcrypt.hash(password, saltRounds);
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // save user to database
-        let result = await User.create({
-            name: name,
-            email: email,
-            password: hashPassword,
-            role: "User",
+        // Create new user
+        const newUser = new User({
+            name,
+            email,
+            password: hashedPassword,
+            role: "user"
         });
 
-        return result;
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
-};
+        await newUser.save();
+        return { success: true, message: "User created successfully" };
 
-// Đăng nhập
+    }
+    catch (error) {
+        console.error("Error creating user:", error);
+        return { success: false, message: "Error creating user" };
+    }
+}
+
 const loginService = async (email, password) => {
     try {
-        // fetch user by email
         const user = await User.findOne({ email: email });
+        if (!user) {
+            console.log("User not found with email:", email);
+            return {
+                EC: 1,
+                EM: "User not found"
+            };
+        }
+        const isMatchPassword = await bcrypt.compare(password, user.password);
         if (user) {
-            // compare password
-            const isMatchPassword = await bcrypt.compare(password, user.password);
             if (!isMatchPassword) {
                 return {
                     EC: 2,
-                    EM: "Email/Password không hợp lệ",
+                    EM: "Email or password is incorrect"
                 };
-            } else {
-                // create an access token
-                const payload = {
+            }
+            else {
+                const payload =
+                {
                     email: user.email,
                     name: user.name,
-                };
+                }
 
-                const access_token = jwt.sign(payload, process.env.JWT_SECRET, {
-                    expiresIn: process.env.JWT_EXPIRE,
-                });
+                const accessToken = jwt.sign(payload,
+                    process.env.JWT_SECRET,
+                    {
+                        expiresIn: process.env.JWT_EXPIRES_IN
+                    }
+                );
 
                 return {
                     EC: 0,
-                    access_token,
-                    user: {
+                    accessToken,
+                    user:
+                    {
                         email: user.email,
-                        name: user.name,
-                    },
+                        name: user.name
+                    }
                 };
             }
-        } else {
+        }
+        else {
             return {
                 EC: 1,
-                EM: "Email/Password không hợp lệ",
+                EM: "User not found"
             };
         }
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
-};
 
-// Lấy danh sách user (ẩn password)
-const getUserService = async () => {
+    }
+    catch (error) {
+        console.error("Error during login:", error);
+        return { success: false, message: "Error during login" };
+    }
+}
+
+const getUserSevice = async () => {
     try {
-        let result = await User.find({}).select("-password");
-        return result;
-    } catch (error) {
-        console.log(error);
+        let results = await User.find({}).select('-password');
+        return results;
+    }
+    catch (error) {
+        console.error("Error fetching users:", error);
         return null;
     }
-};
+}
 
-module.exports = {
-    createUserService,
-    loginService,
-    getUserService,
-};
+module.exports = { createUserService, loginService, getUserSevice };
