@@ -3,10 +3,10 @@ require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
 const auth = (req, res, next) => {
-    const white_lists = ["/", "/register", "/login"];
+    const white_lists = ["/", "/register", "/login", "/products", "/categories"];
     const path = req.originalUrl.replace(/\/+$/, ""); // remove trailing slash
 
-    if (white_lists.some(item => '/v1/api' + item === path)) {
+    if (white_lists.includes(path) || white_lists.some(item => '/v1/api' + item === path)) {
         return next();
     }
 
@@ -18,7 +18,7 @@ const auth = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user0 = { email: decoded.email, name: decoded.name };
+        req.user = { email: decoded.email, name: decoded.name };
         console.log(">>> check token", decoded);
         next();
     } catch (err) {

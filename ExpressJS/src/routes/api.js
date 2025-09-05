@@ -2,6 +2,7 @@ const express = require('express');
 const { createUser, handleLogin, getUser,
     getAccount }
     = require('../controllers/userController');
+const { getProductsByCategory, getAllCategories } = require('../controllers/productController');
 const auth = require('../middleware/auth');
 const delay = require('../middleware/delay');
 
@@ -20,4 +21,8 @@ router.post("/login", handleLogin);
 router.get("/get-user", getUser);
 router.get("/account", delay, getAccount);
 
-module.exports = router;    
+// Product routes
+router.get("/products", getProductsByCategory);
+router.get("/categories", getAllCategories);
+
+module.exports = router;
