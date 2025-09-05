@@ -13,7 +13,7 @@ const loginApi = (email, password) => {
 }
 
 const getUserApi = () => {
-    const URL_API = "/v1/api/user";
+    const URL_API = "/v1/api/get-user";
     return axios.get(URL_API);
 }
 

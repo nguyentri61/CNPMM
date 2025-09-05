@@ -16,7 +16,7 @@ const LoginPage = () => {
         console.log("response: ", res);
 
         if (res && res.EC === 0) {
-            localStorage.setItem("access_token", res.token);
+            localStorage.setItem("access_token", res.accessToken);
             // Lưu thông tin user vào localStorage để sử dụng sau này
             localStorage.setItem("user_email", res?.user?.email ?? "");
             localStorage.setItem("user_name", res?.user?.name ?? "");

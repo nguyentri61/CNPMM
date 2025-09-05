@@ -91,7 +91,7 @@ const loginService = async (email, password) => {
     }
 }
 
-const getUserSevice = async () => {
+const getUserService = async () => {
     try {
         let results = await User.find({}).select('-password');
         return results;
@@ -102,4 +102,4 @@ const getUserSevice = async () => {
     }
 }
 
-module.exports = { createUserService, loginService, getUserSevice };
+module.exports = { createUserService, loginService, getUserService };

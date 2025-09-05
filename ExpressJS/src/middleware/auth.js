@@ -1,32 +1,34 @@
 require("dotenv").config();
-
 const jwt = require("jsonwebtoken");
 
 const auth = (req, res, next) => {
-    const white_lists = ["/", "/register", "/login", "/products", "/categories"];
-    const path = req.originalUrl.replace(/\/+$/, ""); // remove trailing slash
-
-    if (white_lists.includes(path) || white_lists.some(item => '/v1/api' + item === path)) {
-        return next();
-    }
-
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) return res.status(401).json({ message: "No token provided" });
-
-    const token = authHeader.split(" ")[1];
-    if (!token) return res.status(401).json({ message: "Token malformed" });
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = { email: decoded.email, name: decoded.name };
-        console.log(">>> check token", decoded);
+    const white_lists = ["/", "/register", "/login"];
+    if (white_lists.find((item) => "/v1/api" + item === req.originalUrl)) {
         next();
-    } catch (err) {
-        console.log(">>> Error verify token:", err);
-        return res.status(401).json({ message: "Invalid token" });
+    } else {
+        if (req.headers.authorization?.split(" ")?.[1]) {
+            const token = req.headers.authorization.split(" ")[1];
+
+            //verify token
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                req.user = {
+                    email: decoded.email,
+                    name: decoded.name,
+                };
+                console.log(">>> check token :", decoded);
+                next();
+            } catch (error) {
+                return res.status(401).json({
+                    message: "Token bị hết hạn/hoặc không hợp lệ",
+                });
+            }
+        } else {
+            return res.status(401).json({
+                message: "Bạn chưa truyền Access Token ở header/Hoặc token bị hết hạn",
+            });
+        }
     }
 };
-
-
 
 module.exports = auth;
