@@ -83,13 +83,14 @@ const ProductsPage = () => {
         let result;
         if (searchKeyword) {
           result = await fuzzySearchApi(searchKeyword);
-          if (result.success) {
-            setProducts(result.data);
-            setPagination(prev => ({
-              ...prev,
-              total: result.data.length
-            }));
-          }
+          console.log('Fuzzy search result:', result);
+
+          setProducts(result);
+          setPagination(prev => ({
+            ...prev,
+            total: result.length
+          }));
+
         } else if (filters.priceMin || filters.priceMax || filters.onSale || filters.minViews || filters.maxViews) {
           const filterParams = {
             category: selectedCategory !== "all" ? selectedCategory : "",
