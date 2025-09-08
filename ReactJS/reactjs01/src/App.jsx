@@ -12,7 +12,7 @@ function App() {
     const fetchAccount = async () => {
       setAppLoading(true);
       try {
-        const res = await axios.get("/v1/api/user");
+        const res = await axios.get("/v1/api/get-user");
         console.log("App.jsx user response:", res);
 
         if (res && res.EC === 0 && res.DS && res.DS.length > 0) {

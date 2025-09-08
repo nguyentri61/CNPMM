@@ -22,6 +22,14 @@ const productSchema = new mongoose.Schema(
             type: String,
             default: "default-product.jpg"
         },
+        onSale: {
+            type: Boolean,
+            default: false
+        },
+        views: {
+            type: Number,
+            default: 0
+        },
         createdAt: {
             type: Date,
             default: Date.now
