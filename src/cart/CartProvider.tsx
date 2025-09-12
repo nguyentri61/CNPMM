@@ -1,8 +1,8 @@
-import React, {
+import {
   createContext,
   useContext,
   useReducer,
-  ReactNode,
+  type ReactNode,
   useEffect,
 } from "react";
 import type { CartItem } from "./types";
@@ -13,8 +13,6 @@ type Action =
   | { type: "UPDATE"; payload: { id: string; quantity: number } }
   | { type: "REMOVE"; payload: { id: string } }
   | { type: "CLEAR" };
-
-const initialState: State = { items: [] };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -48,7 +46,17 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-const CartContext = createContext<any>(null);
+type CartContextValue = {
+  items: CartItem[];
+  addItem: (item: CartItem) => void;
+  updateItem: (id: string, quantity: number) => void;
+  removeItem: (id: string) => void;
+  clear: () => void;
+  total: number;
+  count: number;
+};
+
+const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({
   children,
@@ -62,7 +70,10 @@ export function CartProvider({
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(state.items));
-    } catch (e) {}
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (e) {
+      /* empty */
+    }
   }, [state.items]);
 
   const addItem = (item: CartItem) => dispatch({ type: "ADD", payload: item });
@@ -92,7 +103,8 @@ export function CartProvider({
   );
 }
 
-export const useCart = () => {
+// eslint-disable-next-line react-refresh/only-export-components
+export const useCart = (): CartContextValue => {
   const c = useContext(CartContext);
   if (!c) throw new Error("useCart must be used inside CartProvider");
   return c;

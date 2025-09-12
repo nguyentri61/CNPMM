@@ -4,7 +4,11 @@
 "declaration": true,
 "emitDeclarationOnly": true,
 "outDir": "dist/types",
-"skipLibCheck": true
+"skipLibCheck": true,
+"module": "ESNext",
+"jsx": "react-jsx",
+"esModuleInterop": true,
+"moduleResolution": "bundler"
 },
 "include": ["src"]
 }

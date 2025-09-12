@@ -4,7 +4,7 @@ export type CartItem = {
   price: number;
   quantity: number;
   image?: string;
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 };
 
 export type CartState = { items: CartItem[] };

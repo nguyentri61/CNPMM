@@ -1,5 +1,4 @@
-import React from "react";
-import { CartItem as CI } from "./types";
+import type { CartItem as CI } from "./types";
 import Button from "../components/Button";
 
 export default function CartItem({

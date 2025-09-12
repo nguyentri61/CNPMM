@@ -1,4 +1,3 @@
-import React from "react";
 import Modal from "../components/Modal";
 import CartList from "./CartList";
 import { useCart } from "./CartProvider";

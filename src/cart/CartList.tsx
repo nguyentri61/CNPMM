@@ -1,4 +1,3 @@
-import React from "react";
 import { useCart } from "./CartProvider";
 import CartItemComp from "./CartItem";
 
