@@ -26,12 +26,7 @@ import {
   TagOutlined,
   DollarOutlined
 } from '@ant-design/icons';
-import {
-  getAllCategoriesApi,
-  getProductsByCategoryApi,
-  fuzzySearchApi,
-  filterApi
-} from '../util/api';
+import { getAllCategoriesApi, getProductsApi } from '../util/api';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
@@ -49,15 +44,14 @@ const ProductsPage = () => {
   });
   const [searchKeyword, setSearchKeyword] = useState("");
   const [filters, setFilters] = useState({
-    priceMin: "",
-    priceMax: "",
+    minPrice: "",
+    maxPrice: "",
     onSale: false,
-    minViews: "",
-    maxViews: ""
+    views: 0
   });
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
-  // Lấy danh sách danh mục
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -75,54 +69,39 @@ const ProductsPage = () => {
     fetchCategories();
   }, []);
 
-  // Lấy sản phẩm (theo search / filter / category + pagination)
+  // Fetch products with combined API
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        let result;
-        if (searchKeyword) {
-          result = await fuzzySearchApi(searchKeyword);
-          console.log('Fuzzy search result:', result);
+        const params = {
+          category: selectedCategory !== "all" ? selectedCategory : "",
+          page: pagination.current,
+          limit: pagination.pageSize,
+          search: searchKeyword || undefined,
+          minPrice: filters.minPrice || undefined,
+          maxPrice: filters.maxPrice || undefined,
+          onSale: filters.onSale ? 'true' : undefined,
+          views: filters.views || undefined
+        };
 
-          setProducts(result);
+        const result = await getProductsApi(params);
+        if (result.success && result.data) {
+          setProducts(result.data.products);
+          console.log(result.data.products);
           setPagination(prev => ({
             ...prev,
-            total: result.length
+            total: result.data.pagination.total,
           }));
-
-        } else if (filters.priceMin || filters.priceMax || filters.onSale || filters.minViews || filters.maxViews) {
-          const filterParams = {
-            category: selectedCategory !== "all" ? selectedCategory : "",
-            ...filters
-          };
-          if (filters.onSale) {
-            filterParams.onSale = 'true';
-          }
-          result = await filterApi(filterParams);
-          if (result.success) {
-            setProducts(result.data);
-            setPagination(prev => ({
-              ...prev,
-              total: result.data.length
-            }));
-          }
         } else {
-          result = await getProductsByCategoryApi(
-            selectedCategory,
-            pagination.current,
-            pagination.pageSize
-          );
-          if (result.success) {
-            setProducts(result.data.products);
-            setPagination(prev => ({
-              ...prev,
-              total: result.data.totalItems
-            }));
-          }
+          console.error('Failed to fetch products:', result.data.message);
+          setProducts([]);
+          setPagination(prev => ({ ...prev, total: 0 }));
         }
       } catch (error) {
         console.error('Error fetching products:', error);
+        setProducts([]);
+        setPagination(prev => ({ ...prev, total: 0 }));
       } finally {
         setLoading(false);
       }
@@ -131,14 +110,14 @@ const ProductsPage = () => {
     fetchProducts();
   }, [selectedCategory, pagination.current, pagination.pageSize, searchKeyword, filters]);
 
-  // Xử lý thay đổi danh mục
+  // Handle category change
   const handleCategoryChange = (value) => {
     setSelectedCategory(value);
     setPagination(prev => ({ ...prev, current: 1 }));
     setSearchKeyword("");
   };
 
-  // Xử lý thay đổi trang
+  // Handle page change
   const handlePageChange = (page, pageSize) => {
     setPagination(prev => ({
       ...prev,
@@ -147,32 +126,32 @@ const ProductsPage = () => {
     }));
   };
 
-  // Xử lý search
+  // Handle search
   const handleSearch = (value) => {
     setSearchKeyword(value.trim());
     setPagination(prev => ({ ...prev, current: 1 }));
-    setFilters({ priceMin: "", priceMax: "", onSale: false, minViews: "", maxViews: "" });
+    setFilters({ minPrice: "", maxPrice: "", onSale: false, views: "" });
   };
 
-  // Xử lý filter
+  // Handle filter
   const handleFilter = () => {
     setSearchKeyword("");
     setPagination(prev => ({ ...prev, current: 1 }));
   };
 
-  // Xử lý clear filters
+  // Handle clear filters
   const handleClearFilters = () => {
-    setFilters({ priceMin: "", priceMax: "", onSale: false, minViews: "", maxViews: "" });
+    setFilters({ minPrice: "", maxPrice: "", onSale: false, views: "" });
     setSelectedCategory('all');
     setSearchKeyword("");
   };
 
-  // Đếm số filter đang active
+  // Count active filters
   const getActiveFiltersCount = () => {
     let count = 0;
-    if (filters.priceMin || filters.priceMax) count++;
+    if (filters.minPrice || filters.maxPrice) count++;
     if (filters.onSale) count++;
-    if (filters.minViews || filters.maxViews) count++;
+    if (filters.views) count++;
     if (selectedCategory !== 'all') count++;
     return count;
   };
@@ -270,8 +249,8 @@ const ProductsPage = () => {
                 <Input
                   placeholder="0"
                   type="number"
-                  value={filters.priceMin}
-                  onChange={e => setFilters(prev => ({ ...prev, priceMin: e.target.value }))}
+                  value={filters.minPrice}
+                  onChange={e => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
                   size="large"
                   suffix="đ"
                   className="rounded-lg"
@@ -285,8 +264,8 @@ const ProductsPage = () => {
                 <Input
                   placeholder="∞"
                   type="number"
-                  value={filters.priceMax}
-                  onChange={e => setFilters(prev => ({ ...prev, priceMax: e.target.value }))}
+                  value={filters.maxPrice}
+                  onChange={e => setFilters(prev => ({ ...prev, maxPrice: e.target.value }))}
                   size="large"
                   suffix="đ"
                   className="rounded-lg"
@@ -335,22 +314,8 @@ const ProductsPage = () => {
                     <Input
                       placeholder="0"
                       type="number"
-                      value={filters.minViews}
-                      onChange={e => setFilters(prev => ({ ...prev, minViews: e.target.value }))}
-                      size="large"
-                      className="rounded-lg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Lượt xem đến
-                    </label>
-                    <Input
-                      placeholder="∞"
-                      type="number"
-                      value={filters.maxViews}
-                      onChange={e => setFilters(prev => ({ ...prev, maxViews: e.target.value }))}
+                      value={filters.views}
+                      onChange={e => setFilters(prev => ({ ...prev, views: e.target.value }))}
                       size="large"
                       className="rounded-lg"
                     />
@@ -372,14 +337,23 @@ const ProductsPage = () => {
                   <div key={product._id} className="group">
                     <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
                       {/* Product Image */}
-                      <div className="relative overflow-hidden">
-                        <Image
-                          alt={product.name}
-                          src={product.image}
-                          fallback="https://via.placeholder.com/300x200?text=No+Image"
-                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                          preview={false}
-                        />
+                      <div className="relative overflow-hidden aspect-square">
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                          <Image
+                            alt={product.name}
+                            src={product.image}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            preview={{
+                              mask: <EyeOutlined className="text-white" />,
+                              maskClassName: "flex items-center justify-center"
+                            }}
+                            style={{
+                              maxHeight: "100%",
+                              maxWidth: "100%"
+                            }}
+                            fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjNmNGY2Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuMzVlbSIgZmlsbD0jOTk5Pk5vIEluYWdlPC90ZXh0Pjwvc3ZnPg=="
+                          />
+                        </div>
                         {/* Sale Badge */}
                         {product.onSale && (
                           <div className="absolute top-3 left-3">
@@ -425,19 +399,17 @@ const ProductsPage = () => {
               </div>
 
               {/* Pagination */}
-              {!searchKeyword && !(filters.priceMin || filters.priceMax || filters.onSale || filters.minViews || filters.maxViews) && (
-                <div className="flex justify-center">
-                  <Pagination
-                    current={pagination.current}
-                    pageSize={pagination.pageSize}
-                    total={pagination.total}
-                    onChange={handlePageChange}
-                    showSizeChanger
-                    pageSizeOptions={['4', '8', '12', '16']}
-                    className="bg-white p-4 rounded-xl shadow-sm"
-                  />
-                </div>
-              )}
+              <div className="flex justify-center">
+                <Pagination
+                  current={pagination.current}
+                  pageSize={pagination.pageSize}
+                  total={pagination.total}
+                  onChange={handlePageChange}
+                  showSizeChanger
+                  pageSizeOptions={['4', '8', '12', '16']}
+                  className="bg-white p-4 rounded-xl shadow-sm"
+                />
+              </div>
             </>
           ) : (
             <div className="text-center py-20">

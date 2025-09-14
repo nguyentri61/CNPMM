@@ -2,7 +2,7 @@ const express = require('express');
 const { createUser, handleLogin, getUser,
     getAccount }
     = require('../controllers/userController');
-const { getProductsByCategory, getAllCategories, fuzzySearch, filter } = require('../controllers/productController');
+const { getProductsByCategory, getAllCategories, fuzzySearch, filter, getProducts } = require('../controllers/productController');
 const auth = require('../middleware/auth');
 const delay = require('../middleware/delay');
 
@@ -20,12 +20,12 @@ router.post("/login", handleLogin);
 
 
 // Product routes
-router.get("/products", getProductsByCategory);
+router.get("/products", getProducts);
 router.get("/categories", getAllCategories);
 
 // Fuzzy Search & Filter
-router.get("/search", fuzzySearch);
-router.get("/filter", filter);
+// router.get("/search", fuzzySearch);
+// router.get("/filter", filter);
 
 router.use(auth);
 router.get("/get-user", getUser);

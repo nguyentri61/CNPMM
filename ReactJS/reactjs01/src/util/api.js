@@ -17,33 +17,37 @@ const getUserApi = () => {
     return axios.get(URL_API);
 }
 
-const getProductsByCategoryApi = (category = 'all', page = 1, limit = 10) => {
-    const URL_API = `/v1/api/products?category=${category}&page=${page}&limit=${limit}`;
-    return axios.get(URL_API);
-}
+// const getProductsByCategoryApi = (category = 'all', page = 1, limit = 10) => {
+//     const URL_API = `/v1/api/products?category=${category}&page=${page}&limit=${limit}`;
+//     return axios.get(URL_API);
+// }
 
 const getAllCategoriesApi = () => {
     const URL_API = "/v1/api/categories";
     return axios.get(URL_API);
 }
 
-/**
- * Fuzzy Search API
- * @param {string} keyword - từ khóa cần tìm
- */
-const fuzzySearchApi = (keyword) => {
-    const URL_API = `/v1/api/search?search=${encodeURIComponent(keyword)}`;
-    return axios.get(URL_API);
-}
+const getProductsApi = (params = {}) => {
+    return axios.get("/v1/api/products", { params });
+};
 
-/**
- * Filter API
- * @param {object} filters - các điều kiện lọc, ví dụ { category: 'shoes', priceMin: 100, priceMax: 500 }
- */
-const filterApi = (filters) => {
-    const queryString = new URLSearchParams(filters).toString();
-    const URL_API = `/v1/api/filter?${queryString}`;
-    return axios.get(URL_API);
-}
+// /**
+//  * Fuzzy Search API
+//  * @param {string} keyword - từ khóa cần tìm
+//  */
+// const fuzzySearchApi = (keyword) => {
+//     const URL_API = `/v1/api/search?search=${encodeURIComponent(keyword)}`;
+//     return axios.get(URL_API);
+// }
 
-export { createUserApi, loginApi, getUserApi, getProductsByCategoryApi, getAllCategoriesApi, fuzzySearchApi, filterApi };
+// /**
+//  * Filter API
+//  * @param {object} filters - các điều kiện lọc, ví dụ { category: 'shoes', priceMin: 100, priceMax: 500 }
+//  */
+// const filterApi = (filters) => {
+//     const queryString = new URLSearchParams(filters).toString();
+//     const URL_API = `/v1/api/filter?${queryString}`;
+//     return axios.get(URL_API);
+// }
+
+export { createUserApi, loginApi, getUserApi, getProductsApi, getAllCategoriesApi };
