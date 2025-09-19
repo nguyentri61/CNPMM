@@ -50,4 +50,78 @@ const getProductsApi = (params = {}) => {
 //     return axios.get(URL_API);
 // }
 
-export { createUserApi, loginApi, getUserApi, getProductsApi, getAllCategoriesApi };
+// Product Favorites APIs
+const addToFavoritesApi = (productId) => {
+    const URL_API = `/v1/api/products/${productId}/favorite`;
+    return axios.post(URL_API);
+};
+
+const removeFromFavoritesApi = (productId) => {
+    const URL_API = `/v1/api/products/${productId}/favorite`;
+    return axios.delete(URL_API);
+};
+
+const getFavoriteProductsApi = (page = 1, limit = 10) => {
+    const URL_API = `/v1/api/products/favorites?page=${page}&limit=${limit}`;
+    return axios.get(URL_API);
+};
+
+// Product Similar APIs
+const getSimilarProductsApi = (productId) => {
+    const URL_API = `/v1/api/products/${productId}/similar`;
+    return axios.get(URL_API);
+};
+
+const updateSimilarProductsApi = (productId) => {
+    const URL_API = `/v1/api/products/${productId}/similar/update`;
+    return axios.post(URL_API);
+};
+
+// Product View APIs
+const updateProductViewApi = (productId) => {
+    const URL_API = `/v1/api/products/${productId}/view`;
+    return axios.get(URL_API);
+};
+
+const getViewedProductsApi = (page = 1, limit = 10) => {
+    const URL_API = `/v1/api/products/viewed?page=${page}&limit=${limit}`;
+    return axios.get(URL_API);
+};
+
+// Product Count APIs
+const incrementPurchaseCountApi = (productId) => {
+    const URL_API = `/v1/api/products/${productId}/purchase`;
+    return axios.post(URL_API);
+};
+
+const incrementCommentCountApi = (productId) => {
+    const URL_API = `/v1/api/products/${productId}/comment`;
+    return axios.post(URL_API);
+};
+
+const updateProductCountsApi = (productId, counts) => {
+    const URL_API = `/v1/api/products/${productId}/counts`;
+    return axios.put(URL_API, counts);
+};
+
+export { 
+    createUserApi, 
+    loginApi, 
+    getUserApi, 
+    getProductsApi, 
+    getAllCategoriesApi,
+    // Favorites
+    addToFavoritesApi,
+    removeFromFavoritesApi,
+    getFavoriteProductsApi,
+    // Similar Products
+    getSimilarProductsApi,
+    updateSimilarProductsApi,
+    // Product Views
+    updateProductViewApi,
+    getViewedProductsApi,
+    // Product Counts
+    incrementPurchaseCountApi,
+    incrementCommentCountApi,
+    updateProductCountsApi
+};

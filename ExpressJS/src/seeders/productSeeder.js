@@ -1,7 +1,18 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Product = require('../models/Product');
+const User = require('../models/user');
 const connectDB = require('../config/database');
+
+// Hàm helper để thêm các trường mặc định
+const addDefaultFields = (product) => ({
+  ...product,
+  purchaseCount: product.purchaseCount || Math.floor(Math.random() * 50) + 1,
+  commentCount: product.commentCount || Math.floor(Math.random() * 30) + 1,
+  favorites: product.favorites || [],
+  similarProducts: product.similarProducts || [],
+  viewedBy: product.viewedBy || []
+});
 
 // Dữ liệu mẫu cho sản phẩm
 const productSamples = [
@@ -176,15 +187,143 @@ const seedProducts = async () => {
     await Product.deleteMany({});
     console.log('Đã xóa tất cả sản phẩm cũ');
 
+    // Thêm các trường mặc định cho tất cả sản phẩm
+    const productsWithDefaults = productSamples.map(addDefaultFields);
+
     // Thêm sản phẩm mới
-    await Product.insertMany(productSamples);
-    console.log(`Đã thêm ${productSamples.length} sản phẩm mới`);
+    const insertedProducts = await Product.insertMany(productsWithDefaults);
+    console.log(`Đã thêm ${insertedProducts.length} sản phẩm mới`);
+
+    // Tạo dữ liệu cứng cho các chức năng mới
+    await seedAdvancedFeatures(insertedProducts);
 
     console.log('Hoàn thành việc tạo dữ liệu mẫu!');
     return true;
   } catch (error) {
     console.error('Lỗi khi tạo dữ liệu mẫu:', error);
     return false;
+  }
+};
+
+// Hàm tạo dữ liệu cứng cho các chức năng nâng cao
+const seedAdvancedFeatures = async (products) => {
+  try {
+    console.log('Bắt đầu tạo dữ liệu cứng cho các chức năng nâng cao...');
+
+    // Tạo một số user giả để test
+    const testUsers = await createTestUsers();
+    console.log(`Đã tạo ${testUsers.length} user test`);
+
+    // Thêm dữ liệu favorites
+    await seedFavorites(products, testUsers);
+    console.log('Đã thêm dữ liệu favorites');
+
+    // Thêm dữ liệu viewed products
+    await seedViewedProducts(products, testUsers);
+    console.log('Đã thêm dữ liệu viewed products');
+
+    // Thêm dữ liệu similar products
+    await seedSimilarProducts(products);
+    console.log('Đã thêm dữ liệu similar products');
+
+    console.log('Hoàn thành tạo dữ liệu cứng cho các chức năng nâng cao!');
+  } catch (error) {
+    console.error('Lỗi khi tạo dữ liệu cứng:', error);
+  }
+};
+
+// Tạo user test
+const createTestUsers = async () => {
+  try {
+    // Xóa user test cũ
+    await User.deleteMany({ email: { $regex: /^test/ } });
+    
+    const testUsers = [
+      {
+        name: 'Test User 1',
+        email: 'test1@example.com',
+        password: 'password123'
+      },
+      {
+        name: 'Test User 2', 
+        email: 'test2@example.com',
+        password: 'password123'
+      },
+      {
+        name: 'Test User 3',
+        email: 'test3@example.com', 
+        password: 'password123'
+      }
+    ];
+
+    const createdUsers = await User.insertMany(testUsers);
+    return createdUsers;
+  } catch (error) {
+    console.error('Lỗi khi tạo user test:', error);
+    return [];
+  }
+};
+
+// Thêm dữ liệu favorites
+const seedFavorites = async (products, users) => {
+  try {
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      
+      // Mỗi sản phẩm có 1-3 user yêu thích ngẫu nhiên
+      const numFavorites = Math.floor(Math.random() * 3) + 1;
+      const randomUsers = users.sort(() => 0.5 - Math.random()).slice(0, numFavorites);
+      
+      product.favorites = randomUsers.map(user => user._id);
+      await product.save();
+    }
+  } catch (error) {
+    console.error('Lỗi khi thêm favorites:', error);
+  }
+};
+
+// Thêm dữ liệu viewed products
+const seedViewedProducts = async (products, users) => {
+  try {
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      
+      // Mỗi sản phẩm có 2-5 lượt xem từ các user khác nhau
+      const numViews = Math.floor(Math.random() * 4) + 2;
+      const randomUsers = users.sort(() => 0.5 - Math.random()).slice(0, numViews);
+      
+      product.viewedBy = randomUsers.map(user => ({
+        userId: user._id,
+        viewedAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000) // Trong 30 ngày qua
+      }));
+      
+      await product.save();
+    }
+  } catch (error) {
+    console.error('Lỗi khi thêm viewed products:', error);
+  }
+};
+
+// Thêm dữ liệu similar products
+const seedSimilarProducts = async (products) => {
+  try {
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      
+      // Tìm sản phẩm tương tự dựa trên category và price range
+      const priceRange = product.price * 0.2; // 20% giá trị
+      const similarProducts = products.filter(p => 
+        p._id.toString() !== product._id.toString() &&
+        p.category === product.category &&
+        p.price >= product.price - priceRange &&
+        p.price <= product.price + priceRange
+      ).slice(0, 3); // Tối đa 3 sản phẩm tương tự
+      
+      product.similarProducts = similarProducts.map(p => p._id);
+      await product.save();
+    }
+  } catch (error) {
+    console.error('Lỗi khi thêm similar products:', error);
   }
 };
 

@@ -30,6 +30,32 @@ const productSchema = new mongoose.Schema(
             type: Number,
             default: 0
         },
+        purchaseCount: {
+            type: Number,
+            default: 0
+        },
+        commentCount: {
+            type: Number,
+            default: 0
+        },
+        favorites: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }],
+        similarProducts: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product'
+        }],
+        viewedBy: [{
+            userId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            viewedAt: {
+                type: Date,
+                default: Date.now
+            }
+        }],
         createdAt: {
             type: Date,
             default: Date.now
